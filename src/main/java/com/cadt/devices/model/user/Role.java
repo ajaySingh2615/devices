@@ -1,4 +1,6 @@
 package com.cadt.devices.model.user;
 
-public class Role {
+public enum Role {
+    ADMIN,
+    CUSTOMER
 }

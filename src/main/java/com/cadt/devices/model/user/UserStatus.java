@@ -1,4 +1,5 @@
 package com.cadt.devices.model.user;
 
-public class UserStatus {
+public enum UserStatus {
+    ACTIVE, SUSPENDED, DELETED
 }
