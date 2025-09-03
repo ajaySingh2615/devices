@@ -1,4 +1,4 @@
 package com.cadt.devices.exception;
 
-public class ErrorResponse {
+public record ErrorResponse(String code, String message) {
 }
