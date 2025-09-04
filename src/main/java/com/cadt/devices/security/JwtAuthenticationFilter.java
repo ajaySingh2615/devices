@@ -31,25 +31,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String h = req.getHeader(HttpHeaders.AUTHORIZATION);
         if (h != null && h.startsWith("Bearer ")) {
             try {
-                System.out.println("Parsing JWT token: " + h.substring(7, Math.min(h.length(), 50)) + "...");
                 var jws = jwt.parse(h.substring(7));
                 String userId = jws.getPayload().getSubject();
                 String role = (String) jws.getPayload().get("role");
-                System.out.println("JWT parsed successfully - userId: " + userId + ", role: " + role);
-                
-                if (userId == null) {
-                    System.out.println("ERROR: JWT subject (userId) is null!");
-                    return;
-                }
-                
-                users.findById(userId).ifPresent(u -> {
-                    System.out.println("Found user in database: " + u.getId() + ", setting authentication");
-                    SecurityContextHolder.getContext().setAuthentication(
-                        new UsernamePasswordAuthenticationToken(u.getId(), null, List.of(new SimpleGrantedAuthority("ROLE_" + role))));
-                });
-            } catch (Exception e) {
-                System.out.println("JWT parsing failed: " + e.getMessage());
-                e.printStackTrace();
+                users.findById(userId).ifPresent(u -> SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(u.getId(), null, List.of(new SimpleGrantedAuthority("ROLE_" + role)))));
+            } catch (Exception ignored) {
             }
         }
         chain.doFilter(req, res);
