@@ -20,6 +20,7 @@ import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -147,11 +148,18 @@ public class AuthService {
         if (u.getId() == null) {
             throw new RuntimeException("User ID is null - cannot generate JWT");
         }
-        Map<String, Object> claims = Map.of(
-                "sub", u.getId(),  // Add subject to claims
-                "role", u.getRole().name(),
-                "email", u.getEmail()
-        );
+        
+        // Build claims map, handling null values
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("sub", u.getId());
+        claims.put("role", u.getRole().name());
+        if (u.getEmail() != null) {
+            claims.put("email", u.getEmail());
+        }
+        if (u.getPhone() != null) {
+            claims.put("phone", u.getPhone());
+        }
+        
         String access = jwt.generate(u.getId(), claims);
         String refresh = UUID.randomUUID().toString() + UUID.randomUUID();
         refreshRepo.save(RefreshToken.builder().userId(u.getId()).tokenHash(sha256(refresh))
