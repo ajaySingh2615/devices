@@ -11,6 +11,7 @@ import com.cadt.devices.repo.tokens.PasswordResetTokenRepository;
 import com.cadt.devices.repo.tokens.RefreshTokenRepository;
 import com.cadt.devices.repo.user.UserRepository;
 import com.cadt.devices.security.JwtService;
+import com.cadt.devices.util.PhoneUtil;
 import org.springframework.beans.factory.annotation.Value;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -52,8 +53,17 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest req, String ip, String ua) {
         if (users.existsByEmail(req.getEmail())) throw new ApiException("EMAIL_TAKEN", "Email already in use");
+        
+        // Normalize phone number to ensure consistency
+        String normalizedPhone = PhoneUtil.normalizePhone(req.getPhone());
+        
+        // Check if phone number is already in use
+        if (normalizedPhone != null && users.findByPhone(normalizedPhone).isPresent()) {
+            throw new ApiException("PHONE_TAKEN", "Phone number already in use");
+        }
+        
         var u = users.save(User.builder().email(req.getEmail())
-                .name(req.getName()).phone(req.getPhone())
+                .name(req.getName()).phone(normalizedPhone)
                 .passwordHash(encoder.encode(req.getPassword())).role(Role.CUSTOMER).build());
         var tokens = issue(u, ip, ua);
         audit(u.getId(), "REGISTER", ip);
@@ -89,13 +99,18 @@ public class AuthService {
     }
 
     public void phoneStart(PhoneStartRequest r) {
-        otp.sendOtp(r.getPhone());
+        // Normalize phone number for consistency
+        String normalizedPhone = PhoneUtil.normalizePhone(r.getPhone());
+        otp.sendOtp(normalizedPhone);
     }
 
     @Transactional
     public AuthResponse phoneVerify(PhoneVerifyRequest r, String ip, String ua) {
-        if (!otp.verifyOtp(r.getPhone(), r.getOtp())) throw new ApiException("OTP_INVALID", "Incorrect OTP");
-        var u = users.findByPhone(r.getPhone()).orElseGet(() -> users.save(User.builder().phone(r.getPhone()).name("User" + r.getPhone()).role(Role.CUSTOMER).build()));
+        // Normalize phone number for consistency
+        String normalizedPhone = PhoneUtil.normalizePhone(r.getPhone());
+        
+        if (!otp.verifyOtp(normalizedPhone, r.getOtp())) throw new ApiException("OTP_INVALID", "Incorrect OTP");
+        var u = users.findByPhone(normalizedPhone).orElseGet(() -> users.save(User.builder().phone(normalizedPhone).name("User" + normalizedPhone).role(Role.CUSTOMER).build()));
         var tokens = issue(u, ip, ua);
         audit(u.getId(), "LOGIN_PHONE", ip);
         return tokens;
