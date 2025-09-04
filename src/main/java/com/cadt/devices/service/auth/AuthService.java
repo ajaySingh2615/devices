@@ -50,10 +50,17 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest req, String ip, String ua) {
+        System.out.println("Registration attempt for email: " + req.getEmail());
         if (users.existsByEmail(req.getEmail())) throw new ApiException("EMAIL_TAKEN", "Email already in use");
-        var u = users.save(User.builder().email(req.getEmail())
+        
+        var userToSave = User.builder().email(req.getEmail())
                 .name(req.getName()).phone(req.getPhone())
-                .passwordHash(encoder.encode(req.getPassword())).role(Role.CUSTOMER).build());
+                .passwordHash(encoder.encode(req.getPassword())).role(Role.CUSTOMER).build();
+        System.out.println("Built user entity - ID before save: " + userToSave.getId());
+        
+        var u = users.save(userToSave);
+        System.out.println("User saved - ID after save: " + u.getId() + ", email: " + u.getEmail());
+        
         var tokens = issue(u, ip, ua);
         audit(u.getId(), "REGISTER", ip);
         return tokens;
@@ -144,7 +151,12 @@ public class AuthService {
     }
 
     private AuthResponse issue(User u, String ip, String ua) {
+        System.out.println("Issuing token for user ID: " + u.getId() + ", email: " + u.getEmail());
+        if (u.getId() == null) {
+            throw new RuntimeException("User ID is null - cannot generate JWT");
+        }
         Map<String, Object> claims = Map.of(
+                "sub", u.getId(),  // Add subject to claims
                 "role", u.getRole().name(),
                 "email", u.getEmail()
         );

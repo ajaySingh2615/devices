@@ -29,10 +29,19 @@ public class JwtService {
 
     public String generate(String sub, Map<String, Object> claims) {
         var now = Instant.now();
-        return Jwts.builder()
-                .setSubject(sub).setClaims(claims).setIssuer(issuer)
-                .setIssuedAt(Date.from(now)).setExpiration(Date.from(now.plusSeconds(accessExpMinutes * 60)))
-                .signWith(key, Jwts.SIG.HS256).compact();
+        System.out.println("JwtService.generate() - subject: " + sub + ", claims: " + claims);
+        
+        String token = Jwts.builder()
+                .setSubject(sub)
+                .setClaims(claims)
+                .setIssuer(issuer)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plusSeconds(accessExpMinutes * 60)))
+                .signWith(key, Jwts.SIG.HS256)
+                .compact();
+                
+        System.out.println("Generated JWT token: " + token.substring(0, Math.min(token.length(), 50)) + "...");
+        return token;
     }
 
     public Jws<Claims> parse(String token) {
