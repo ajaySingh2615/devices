@@ -37,6 +37,12 @@ public class SecurityConfig {
 
                         // auth endpoints
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/super-admin/**").permitAll()
+
+                        // public catalog endpoints
+                        .requestMatchers("/api/v1/categories/**").permitAll()
+                        .requestMatchers("/api/v1/brands/**").permitAll()
+                        .requestMatchers("/api/v1/products/**").permitAll()
 
                         // preflight
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()

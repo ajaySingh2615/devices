@@ -79,6 +79,19 @@
             <version>2.8.1</version>
         </dependency>
 
+        <!-- Cloudinary for media upload -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http44</artifactId>
+            <version>1.37.0</version>
+        </dependency>
+
+        <!-- Jackson for JSON processing -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
         <!-- JSON factory (use Gson; JacksonFactory is deprecated) -->
         <dependency>
             <groupId>com.google.http-client</groupId>

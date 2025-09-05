@@ -18,4 +18,5 @@ public class RegisterRequest {
     @NotBlank
     private String name;
     private String phone;
+    private String secretKey; // Optional field for super admin registration
 }

@@ -1,11 +1,9 @@
 package com.cadt.devices.controller.admin;
 
+import com.cadt.devices.dto.admin.*;
 import com.cadt.devices.dto.catalog.*;
+import com.cadt.devices.service.admin.AdminDashboardService;
 import com.cadt.devices.service.catalog.CatalogService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +17,37 @@ import java.util.List;
 public class AdminCatalogController {
 
     private final CatalogService catalogService;
+    private final AdminDashboardService dashboardService;
 
-    public AdminCatalogController(CatalogService catalogService) {
+    public AdminCatalogController(CatalogService catalogService, AdminDashboardService dashboardService) {
         this.catalogService = catalogService;
+        this.dashboardService = dashboardService;
+    }
+
+    // Dashboard Endpoints
+    @GetMapping("/dashboard/stats")
+    public ResponseEntity<DashboardStatsResponse> getDashboardStats() {
+        return ResponseEntity.ok(dashboardService.getDashboardStats());
+    }
+
+    @GetMapping("/dashboard/sales-chart")
+    public ResponseEntity<List<SalesChartData>> getSalesChart(@RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(dashboardService.getSalesChartData(days));
+    }
+
+    @GetMapping("/dashboard/top-products")
+    public ResponseEntity<List<TopProductData>> getTopProducts(@RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(dashboardService.getTopProducts(limit));
+    }
+
+    @GetMapping("/dashboard/recent-activity")
+    public ResponseEntity<List<RecentActivityData>> getRecentActivity(@RequestParam(defaultValue = "20") int limit) {
+        return ResponseEntity.ok(dashboardService.getRecentActivity(limit));
+    }
+
+    @GetMapping("/dashboard/low-stock-alerts")
+    public ResponseEntity<List<String>> getLowStockAlerts() {
+        return ResponseEntity.ok(dashboardService.getLowStockAlerts());
     }
 
     // Categories Management
@@ -88,20 +114,14 @@ public class AdminCatalogController {
 
     // Admin-only catalog listings
     @GetMapping("/categories")
-    public ResponseEntity<Page<CategoryDto>> getAllCategories(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("sortOrder"));
-        // This would need a service method for admin view of all categories
-        return ResponseEntity.ok().build(); // Placeholder
+    public ResponseEntity<List<CategoryDto>> getAllCategories() {
+        // Return all categories for admin view
+        return ResponseEntity.ok(catalogService.getAllActiveCategories());
     }
 
     @GetMapping("/brands")
-    public ResponseEntity<Page<BrandDto>> getAllBrands(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("name"));
-        // This would need a service method for admin view of all brands
-        return ResponseEntity.ok().build(); // Placeholder
+    public ResponseEntity<List<BrandDto>> getAllBrands() {
+        // Return all brands for admin view
+        return ResponseEntity.ok(catalogService.getAllActiveBrands());
     }
 }

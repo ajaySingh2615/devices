@@ -6,6 +6,7 @@ import com.cadt.devices.model.token.PasswordResetToken;
 import com.cadt.devices.model.token.RefreshToken;
 import com.cadt.devices.model.user.Role;
 import com.cadt.devices.model.user.User;
+import com.cadt.devices.model.user.UserStatus;
 import com.cadt.devices.repo.audit.AuditLogRepository;
 import com.cadt.devices.repo.tokens.PasswordResetTokenRepository;
 import com.cadt.devices.repo.tokens.RefreshTokenRepository;
@@ -67,6 +68,39 @@ public class AuthService {
                 .passwordHash(encoder.encode(req.getPassword())).role(Role.CUSTOMER).build());
         var tokens = issue(u, ip, ua);
         audit(u.getId(), "REGISTER", ip);
+        return tokens;
+    }
+
+    @Transactional
+    public AuthResponse registerSuperAdmin(RegisterRequest req) {
+        // Validate that no admin exists yet
+        if (users.existsByRole(Role.ADMIN)) {
+            throw new ApiException("SUPER_ADMIN_EXISTS", "Super admin already exists");
+        }
+
+        // Normalize phone number to ensure consistency
+        String normalizedPhone = PhoneUtil.normalizePhone(req.getPhone());
+        
+        // Check if email or phone is already in use
+        if (users.existsByEmail(req.getEmail())) {
+            throw new ApiException("EMAIL_TAKEN", "Email already in use");
+        }
+        if (normalizedPhone != null && users.findByPhone(normalizedPhone).isPresent()) {
+            throw new ApiException("PHONE_TAKEN", "Phone number already in use");
+        }
+
+        // Create super admin user
+        var u = users.save(User.builder()
+                .email(req.getEmail())
+                .name(req.getName())
+                .phone(normalizedPhone)
+                .passwordHash(encoder.encode(req.getPassword()))
+                .role(Role.ADMIN) // Set as ADMIN role
+                .status(UserStatus.ACTIVE) // Set as active user
+                .build());
+
+        var tokens = issue(u, "SYSTEM", "SUPER_ADMIN_INIT");
+        audit(u.getId(), "SUPER_ADMIN_REGISTER", "SYSTEM");
         return tokens;
     }
 
