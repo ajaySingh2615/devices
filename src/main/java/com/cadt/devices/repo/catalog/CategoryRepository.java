@@ -22,5 +22,5 @@ public interface CategoryRepository extends JpaRepository<Category, String> {
 
     Page<Category> findByIsActiveTrueOrderBySortOrder(Pageable pageable);
 
-    boolean exitsBySlug(String slug);
+    boolean existsBySlug(String slug);
 }

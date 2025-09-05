@@ -48,7 +48,7 @@ public class Product extends BaseEntity {
 
     @Column(nullable = false)
     @Builder.Default
-    private boolean isActive;
+    private boolean isActive = true;
 
     // Virtual relationship to variants
     @OneToMany(mappedBy = "productId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

@@ -26,7 +26,7 @@ public class Attribute extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AttributeType type;
+    private AttributeType inputType;
 
     @Column(nullable = false)
     @Builder.Default

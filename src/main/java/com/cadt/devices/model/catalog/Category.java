@@ -29,6 +29,9 @@ public class Category extends BaseEntity {
     @Column(length = 120, nullable = false, unique = true)
     private String slug;
 
+    @Column(length = 500)
+    private String description;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean isActive = true;
