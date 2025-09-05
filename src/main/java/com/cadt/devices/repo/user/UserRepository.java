@@ -4,7 +4,7 @@ import com.cadt.devices.model.user.User;
 import com.cadt.devices.model.user.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, String> {
@@ -18,8 +18,8 @@ public interface UserRepository extends JpaRepository<User, String> {
     boolean existsByEmail(String email);
     
     // Admin dashboard queries
-    long countByCreatedAtAfter(LocalDateTime date);
-    long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    long countByCreatedAtAfter(Instant date);
+    long countByCreatedAtBetween(Instant start, Instant end);
     
     // Role-based queries
     boolean existsByRole(Role role);

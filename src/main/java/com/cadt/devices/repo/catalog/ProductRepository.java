@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,10 +50,10 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     // Admin dashboard queries
     long countByIsActiveTrue();
     
-    long countByCreatedAtAfter(java.time.LocalDateTime date);
+    long countByCreatedAtAfter(Instant date);
     
-    long countByCreatedAtBetween(java.time.LocalDateTime start, java.time.LocalDateTime end);
+    long countByCreatedAtBetween(Instant start, Instant end);
     
     @Query("SELECT p FROM Product p WHERE p.createdAt > :date ORDER BY p.createdAt DESC")
-    List<Product> findByCreatedAtAfterOrderByCreatedAtDesc(@Param("date") java.time.LocalDateTime date);
+    List<Product> findByCreatedAtAfterOrderByCreatedAtDesc(@Param("date") Instant date);
 }

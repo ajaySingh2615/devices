@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
@@ -48,8 +49,8 @@ public class AdminDashboardService {
         BigDecimal totalInventoryValue = calculateTotalInventoryValue();
 
         // Growth metrics (last 30 days vs previous 30 days)
-        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
-        LocalDateTime sixtyDaysAgo = LocalDateTime.now().minusDays(60);
+        Instant thirtyDaysAgo = Instant.now().minusSeconds(30 * 24 * 60 * 60); // 30 days in seconds
+        Instant sixtyDaysAgo = Instant.now().minusSeconds(60 * 24 * 60 * 60); // 60 days in seconds
         
         long recentProducts = productRepository.countByCreatedAtAfter(thirtyDaysAgo);
         long previousProducts = productRepository.countByCreatedAtBetween(sixtyDaysAgo, thirtyDaysAgo);
@@ -114,7 +115,7 @@ public class AdminDashboardService {
      */
     public List<RecentActivityData> getRecentActivity(int limit) {
         // Get recent products as activity
-        LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
+        Instant oneDayAgo = Instant.now().minusSeconds(24 * 60 * 60); // 1 day in seconds
         
         List<RecentActivityData> activities = new ArrayList<>();
         
