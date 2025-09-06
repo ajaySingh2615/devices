@@ -3,6 +3,8 @@ package com.cadt.devices.service.catalog;
 import com.cadt.devices.dto.catalog.*;
 import com.cadt.devices.exception.ApiException;
 import com.cadt.devices.model.catalog.*;
+import com.cadt.devices.model.media.Media;
+import com.cadt.devices.model.media.MediaOwnerType;
 import com.cadt.devices.repo.catalog.*;
 import com.cadt.devices.repo.media.MediaRepository;
 import lombok.RequiredArgsConstructor;
@@ -417,6 +419,10 @@ public class CatalogService {
         List<ProductVariant> variants = variantRepo.findByProductIdAndIsActiveTrueOrderByCreatedAt(product.getId());
         dto.setVariants(variants.stream().map(this::toVariantDto).collect(Collectors.toList()));
         
+        // Add media/images
+        List<Media> media = mediaRepo.findByOwnerTypeAndOwnerIdOrderBySortOrder(MediaOwnerType.PRODUCT, product.getId());
+        dto.setImages(media.stream().map(this::toMediaDto).collect(Collectors.toList()));
+        
         return dto;
     }
     
@@ -451,5 +457,15 @@ public class CatalogService {
         });
         
         return dto;
+    }
+    
+    private MediaDto toMediaDto(Media media) {
+        return MediaDto.builder()
+                .id(media.getId())
+                .url(media.getUrl())
+                .type(media.getType())
+                .alt(media.getAlt())
+                .sortOrder(media.getSortOrder())
+                .build();
     }
 }
