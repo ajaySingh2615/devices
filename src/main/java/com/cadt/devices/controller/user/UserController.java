@@ -22,12 +22,12 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(Principal p) {
         var u = users.get(p.getName());
-        return ResponseEntity.ok(new UserResponse(u.getId(), u.getName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl()));
+        return ResponseEntity.ok(new UserResponse(u.getId(), u.getName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getCreatedAt()));
     }
 
     @PatchMapping("/me")
     public ResponseEntity<UserResponse> update(Principal p, @RequestBody UpdateProfileRequest r) {
         var u = users.update(p.getName(), r);
-        return ResponseEntity.ok(new UserResponse(u.getId(), u.getName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl()));
+        return ResponseEntity.ok(new UserResponse(u.getId(), u.getName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getCreatedAt()));
     }
 }

@@ -2,8 +2,10 @@ package com.cadt.devices.controller.admin;
 
 import com.cadt.devices.dto.admin.*;
 import com.cadt.devices.dto.catalog.*;
+import com.cadt.devices.dto.user.UserResponse;
 import com.cadt.devices.service.admin.AdminDashboardService;
 import com.cadt.devices.service.catalog.CatalogService;
+import com.cadt.devices.service.user.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +20,12 @@ public class AdminCatalogController {
 
     private final CatalogService catalogService;
     private final AdminDashboardService dashboardService;
+    private final UserService userService;
 
-    public AdminCatalogController(CatalogService catalogService, AdminDashboardService dashboardService) {
+    public AdminCatalogController(CatalogService catalogService, AdminDashboardService dashboardService, UserService userService) {
         this.catalogService = catalogService;
         this.dashboardService = dashboardService;
+        this.userService = userService;
     }
 
     // Dashboard Endpoints
@@ -135,5 +139,42 @@ public class AdminCatalogController {
     public ResponseEntity<ProductDto> getProductById(@PathVariable String id) {
         // Return product by ID for admin view
         return ResponseEntity.ok(catalogService.getProductById(id));
+    }
+
+    // User Management Endpoints
+    @GetMapping("/users")
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @PutMapping("/users/{userId}/role")
+    public ResponseEntity<UserResponse> updateUserRole(@PathVariable String userId, @RequestBody UpdateUserRoleRequest request) {
+        return ResponseEntity.ok(userService.updateUserRole(userId, request.getRole()));
+    }
+
+    @PutMapping("/users/{userId}/status")
+    public ResponseEntity<UserResponse> updateUserStatus(@PathVariable String userId, @RequestBody UpdateUserStatusRequest request) {
+        return ResponseEntity.ok(userService.updateUserStatus(userId, request.getStatus()));
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    // Request DTOs for user management
+    public static class UpdateUserRoleRequest {
+        private String role;
+        
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
+    }
+
+    public static class UpdateUserStatusRequest {
+        private String status;
+        
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
     }
 }
