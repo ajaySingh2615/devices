@@ -1,5 +1,6 @@
 package com.cadt.devices.dto.catalog;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -15,6 +16,7 @@ public class CategoryDto {
     private String name;
     private String slug;
     private String description;
+    @JsonProperty("isActive")
     private boolean isActive;
     private int sortOrder;
     private Instant createdAt;

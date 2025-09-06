@@ -13,6 +13,8 @@ public interface BrandRepository extends JpaRepository<Brand, String> {
     Optional<Brand> findBySlug(String slug);
 
     List<Brand> findByIsActiveTrueOrderByName();
+    
+    List<Brand> findAllByOrderByName();
 
     Page<Brand> findByIsActiveTrueOrderByName(Pageable pageable);
 

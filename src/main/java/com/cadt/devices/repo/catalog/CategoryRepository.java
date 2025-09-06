@@ -19,6 +19,9 @@ public interface CategoryRepository extends JpaRepository<Category, String> {
 
     @Query("SELECT c FROM Category c WHERE c.isActive = true ORDER BY c.sortOrder")
     List<Category> findAllActiveOrderBySortOrder();
+    
+    @Query("SELECT c FROM Category c ORDER BY c.sortOrder")
+    List<Category> findAllByOrderBySortOrder();
 
     Page<Category> findByIsActiveTrueOrderBySortOrder(Pageable pageable);
 

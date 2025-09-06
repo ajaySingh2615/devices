@@ -8,6 +8,7 @@ import com.cadt.devices.repo.media.MediaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
@@ -226,6 +227,14 @@ public class CatalogService {
                 .collect(Collectors.toList());
     }
     
+    // Admin method to get ALL categories (including inactive)
+    public List<CategoryDto> getAllCategories() {
+        return categoryRepo.findAllByOrderBySortOrder()
+                .stream()
+                .map(this::toCategoryDto)
+                .collect(Collectors.toList());
+    }
+    
     public List<CategoryDto> getCategoryTree() {
         List<Category> rootCategories = categoryRepo.findByParentIdIsNullAndIsActiveTrueOrderBySortOrder();
         return rootCategories.stream()
@@ -261,6 +270,22 @@ public class CatalogService {
         return brandRepo.findByIsActiveTrueOrderByName()
                 .stream()
                 .map(this::toBrandDto)
+                .collect(Collectors.toList());
+    }
+    
+    // Admin method to get ALL brands (including inactive)
+    public List<BrandDto> getAllBrands() {
+        return brandRepo.findAllByOrderByName()
+                .stream()
+                .map(this::toBrandDto)
+                .collect(Collectors.toList());
+    }
+    
+    // Admin method to get ALL products (including inactive)
+    public List<ProductDto> getAllProducts() {
+        return productRepo.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(this::toProductDto)
                 .collect(Collectors.toList());
     }
     

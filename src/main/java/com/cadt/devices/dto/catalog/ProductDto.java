@@ -1,6 +1,7 @@
 package com.cadt.devices.dto.catalog;
 
 import com.cadt.devices.model.catalog.ConditionGrade;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,6 +19,7 @@ public class ProductDto {
     private String description;
     private ConditionGrade conditionGrade;
     private int warrantyMonths;
+    @JsonProperty("isActive")
     private boolean isActive;
     private Instant createdAt;
 

@@ -115,13 +115,19 @@ public class AdminCatalogController {
     // Admin-only catalog listings
     @GetMapping("/categories")
     public ResponseEntity<List<CategoryDto>> getAllCategories() {
-        // Return all categories for admin view
-        return ResponseEntity.ok(catalogService.getAllActiveCategories());
+        // Return all categories (including inactive) for admin view
+        return ResponseEntity.ok(catalogService.getAllCategories());
     }
 
     @GetMapping("/brands")
     public ResponseEntity<List<BrandDto>> getAllBrands() {
-        // Return all brands for admin view
-        return ResponseEntity.ok(catalogService.getAllActiveBrands());
+        // Return all brands (including inactive) for admin view
+        return ResponseEntity.ok(catalogService.getAllBrands());
+    }
+
+    @GetMapping("/products")
+    public ResponseEntity<List<ProductDto>> getAllProducts() {
+        // Return all products (including inactive) for admin view
+        return ResponseEntity.ok(catalogService.getAllProducts());
     }
 }
