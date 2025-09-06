@@ -38,31 +38,41 @@ public class MediaUploadService {
      */
     public SignedUploadUrlResponse generateSignedUploadUrl(SignedUploadUrlRequest request) {
         try {
-            // Create upload parameters
+            // Create upload parameters for signature generation (exclude resource_type)
+            @SuppressWarnings("unchecked")
+            Map<String, Object> signatureParams = (Map<String, Object>) ObjectUtils.asMap(
+                "folder", "device_hub/" + request.getOwnerType().name().toLowerCase(),
+                "public_id_prefix", request.getOwnerType().name().toLowerCase() + "_" + request.getOwnerId() + "_",
+                "timestamp", System.currentTimeMillis() / 1000
+            );
+            
+            // Create full params for the actual upload (include resource_type)
             @SuppressWarnings("unchecked")
             Map<String, Object> params = (Map<String, Object>) ObjectUtils.asMap(
-                "upload_preset", uploadPreset,
                 "folder", "device_hub/" + request.getOwnerType().name().toLowerCase(),
                 "resource_type", getCloudinaryResourceType(request.getMediaType()),
                 "public_id_prefix", request.getOwnerType().name().toLowerCase() + "_" + request.getOwnerId() + "_",
                 "timestamp", System.currentTimeMillis() / 1000
             );
 
-            // Add transformation for images
-            if (request.getMediaType() == MediaType.IMAGE) {
-                params.put("transformation", ObjectUtils.asMap(
-                    "quality", "auto:good",
-                    "fetch_format", "auto",
-                    "width", 1200,
-                    "height", 1200,
-                    "crop", "limit"
-                ));
-            }
+            // Note: Transformations should be handled by upload preset or applied via URL
+            // Removing transformation from signed upload to avoid FormData serialization issues
 
-            // Generate signed URL
-            String signature = cloudinary.apiSignRequest(params, cloudinary.config.apiSecret);
+            // Debug logging
+            log.info("Signature params (excluding resource_type): {}", signatureParams);
+            log.info("Full params (including resource_type): {}", params);
+            log.info("API Secret: {}", cloudinary.config.apiSecret.substring(0, 5) + "...");
+            
+            // Generate signature using only signature-specific params (excluding resource_type, api_key, signature)
+            String signature = cloudinary.apiSignRequest(signatureParams, cloudinary.config.apiSecret);
+            
+            log.info("Generated signature: {}", signature);
+            
+            // Add signature and api_key to the final parameters
             params.put("signature", signature);
             params.put("api_key", cloudinary.config.apiKey);
+            
+            log.info("Final params: {}", params);
 
             String uploadUrl = "https://api.cloudinary.com/v1_1/" + cloudinary.config.cloudName + "/" 
                              + getCloudinaryResourceType(request.getMediaType()) + "/upload";
@@ -88,7 +98,6 @@ public class MediaUploadService {
             // Upload to Cloudinary
             @SuppressWarnings("unchecked")
             Map<String, Object> uploadParams = (Map<String, Object>) ObjectUtils.asMap(
-                "upload_preset", uploadPreset,
                 "folder", "device_hub/" + request.getOwnerType().name().toLowerCase(),
                 "public_id_prefix", request.getOwnerType().name().toLowerCase() + "_" + request.getOwnerId() + "_",
                 "resource_type", getCloudinaryResourceType(request.getMediaType())
