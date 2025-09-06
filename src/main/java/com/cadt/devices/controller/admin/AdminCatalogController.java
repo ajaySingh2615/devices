@@ -130,4 +130,10 @@ public class AdminCatalogController {
         // Return all products (including inactive) for admin view
         return ResponseEntity.ok(catalogService.getAllProducts());
     }
+
+    @GetMapping("/products/{id}")
+    public ResponseEntity<ProductDto> getProductById(@PathVariable String id) {
+        // Return product by ID for admin view
+        return ResponseEntity.ok(catalogService.getProductById(id));
+    }
 }

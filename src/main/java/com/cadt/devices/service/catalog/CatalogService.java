@@ -289,6 +289,13 @@ public class CatalogService {
                 .collect(Collectors.toList());
     }
     
+    // Admin method to get product by ID (including inactive)
+    public ProductDto getProductById(String id) {
+        Product product = productRepo.findById(id)
+                .orElseThrow(() -> new ApiException("PRODUCT_NOT_FOUND", "Product not found"));
+        return toProductDtoWithDetails(product);
+    }
+    
     public BrandDto getBrandBySlug(String slug) {
         Brand brand = brandRepo.findBySlug(slug)
                 .orElseThrow(() -> new ApiException("BRAND_NOT_FOUND", "Brand not found"));
