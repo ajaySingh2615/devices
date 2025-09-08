@@ -44,6 +44,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/brands/**").permitAll()
                         .requestMatchers("/api/v1/products/**").permitAll()
 
+                        // cart endpoints (support both authenticated and anonymous users)
+                        .requestMatchers("/api/v1/cart/**").permitAll()
+
                         // preflight
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
 
