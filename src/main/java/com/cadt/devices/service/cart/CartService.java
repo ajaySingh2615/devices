@@ -1,14 +1,17 @@
 package com.cadt.devices.service.cart;
 
 import com.cadt.devices.dto.cart.*;
-import com.cadt.devices.dto.catalog.ProductVariantDto;
+import com.cadt.devices.dto.catalog.*;
 import com.cadt.devices.exception.ApiException;
 import com.cadt.devices.model.cart.Cart;
 import com.cadt.devices.model.cart.CartItem;
-import com.cadt.devices.model.catalog.ProductVariant;
+import com.cadt.devices.model.catalog.*;
+import com.cadt.devices.model.media.Media;
+import com.cadt.devices.model.media.MediaOwnerType;
 import com.cadt.devices.repo.cart.CartItemRepository;
 import com.cadt.devices.repo.cart.CartRepository;
-import com.cadt.devices.repo.catalog.ProductVariantRepository;
+import com.cadt.devices.repo.catalog.*;
+import com.cadt.devices.repo.media.MediaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +29,10 @@ public class CartService {
     private final CartRepository cartRepo;
     private final CartItemRepository cartItemRepo;
     private final ProductVariantRepository variantRepo;
+    private final ProductRepository productRepo;
+    private final CategoryRepository categoryRepo;
+    private final BrandRepository brandRepo;
+    private final MediaRepository mediaRepo;
 
     @Transactional
     public CartDto getOrCreateCart(String userId, String sessionId) {
@@ -205,6 +212,13 @@ public class CartService {
     private CartItemDto toCartItemDto(CartItem item) {
         ProductVariant variant = variantRepo.findById(item.getVariantId()).orElse(null);
         ProductVariantDto variantDto = variant != null ? toVariantDto(variant) : null;
+        
+        // Fetch product information if variant exists
+        ProductDto productDto = null;
+        if (variant != null) {
+            Product product = productRepo.findById(variant.getProductId()).orElse(null);
+            productDto = product != null ? toProductDtoWithDetails(product) : null;
+        }
 
         return CartItemDto.builder()
                 .id(item.getId())
@@ -219,6 +233,7 @@ public class CartService {
                 .createdAt(item.getCreatedAt())
                 .updatedAt(item.getUpdatedAt())
                 .variant(variantDto)
+                .product(productDto)
                 .build();
     }
 
@@ -237,6 +252,74 @@ public class CartService {
                 .weightGrams(variant.getWeightGrams())
                 .isActive(variant.isActive())
                 .createdAt(variant.getCreatedAt())
+                .build();
+    }
+
+    private ProductDto toProductDto(Product product) {
+        return ProductDto.builder()
+                .id(product.getId())
+                .categoryId(product.getCategoryId())
+                .brandId(product.getBrandId())
+                .title(product.getTitle())
+                .slug(product.getSlug())
+                .description(product.getDescription())
+                .conditionGrade(product.getConditionGrade())
+                .warrantyMonths(product.getWarrantyMonths())
+                .isActive(product.isActive())
+                .createdAt(product.getCreatedAt())
+                .build();
+    }
+    
+    private ProductDto toProductDtoWithDetails(Product product) {
+        ProductDto dto = toProductDto(product);
+        
+        // Add category and brand details
+        categoryRepo.findById(product.getCategoryId()).ifPresent(cat -> dto.setCategory(toCategoryDto(cat)));
+        brandRepo.findById(product.getBrandId()).ifPresent(brand -> dto.setBrand(toBrandDto(brand)));
+        
+        // Add variants
+        List<ProductVariant> variants = variantRepo.findByProductIdAndIsActiveTrueOrderByCreatedAt(product.getId());
+        dto.setVariants(variants.stream().map(this::toVariantDto).collect(Collectors.toList()));
+        
+        // Add media/images
+        List<Media> media = mediaRepo.findByOwnerTypeAndOwnerIdOrderBySortOrder(MediaOwnerType.PRODUCT, product.getId());
+        dto.setImages(media.stream().map(this::toMediaDto).collect(Collectors.toList()));
+        
+        return dto;
+    }
+    
+    private CategoryDto toCategoryDto(Category category) {
+        return CategoryDto.builder()
+                .id(category.getId())
+                .parentId(category.getParentId())
+                .name(category.getName())
+                .slug(category.getSlug())
+                .description(category.getDescription())
+                .isActive(category.isActive())
+                .sortOrder(category.getSortOrder())
+                .createdAt(category.getCreatedAt())
+                .build();
+    }
+    
+    private BrandDto toBrandDto(Brand brand) {
+        return BrandDto.builder()
+                .id(brand.getId())
+                .name(brand.getName())
+                .slug(brand.getSlug())
+                .description(brand.getDescription())
+                .logoUrl(brand.getLogoUrl())
+                .isActive(brand.isActive())
+                .createdAt(brand.getCreatedAt())
+                .build();
+    }
+    
+    private MediaDto toMediaDto(Media media) {
+        return MediaDto.builder()
+                .id(media.getId())
+                .url(media.getUrl())
+                .type(media.getType())
+                .alt(media.getAlt())
+                .sortOrder(media.getSortOrder())
                 .build();
     }
 }

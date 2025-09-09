@@ -10,7 +10,7 @@ import java.time.Instant;
 
 @Data
 @Builder
-public class CartItemDto {
+public class CartItemWithProductDto {
     private String id;
     private String cartId;
     private String variantId;
