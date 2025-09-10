@@ -1,5 +1,6 @@
 package com.cadt.devices.dto.cart;
 
+import com.cadt.devices.dto.coupon.CouponDto;
 import lombok.Builder;
 import lombok.Data;
 
@@ -18,6 +19,12 @@ public class CartDto {
     private BigDecimal subtotal;
     private BigDecimal taxTotal;
     private BigDecimal grandTotal;
+    
+    // Coupon information
+    private CouponDto appliedCoupon;
+    private BigDecimal couponDiscount;
+    private BigDecimal finalTotal;
+    
     private Instant createdAt;
     private Instant updatedAt;
 }

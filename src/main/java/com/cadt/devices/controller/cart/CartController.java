@@ -1,6 +1,7 @@
 package com.cadt.devices.controller.cart;
 
 import com.cadt.devices.dto.cart.*;
+import com.cadt.devices.dto.coupon.*;
 import com.cadt.devices.service.cart.CartService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequestMapping("/api/v1/cart")
@@ -112,6 +114,64 @@ public class CartController {
         CartDto cart = cartService.mergeCarts(userId, sessionIdToUse);
         return ResponseEntity.ok(cart);
     }
+
+    @PostMapping("/apply-coupon")
+    public ResponseEntity<CouponApplicationResult> applyCoupon(
+            Authentication authentication,
+            @RequestBody ApplyCouponRequest request,
+            @RequestParam(required = false) String sessionId,
+            HttpServletRequest httpRequest) {
+        
+        String userId = authentication != null ? authentication.getName() : null;
+        String sessionIdToUse = sessionId != null ? sessionId : getSessionId(httpRequest);
+        
+        log.info("=== COUPON APPLICATION REQUEST ===");
+        log.info("Coupon Code: {}", request.getCode());
+        log.info("User ID: {}", userId);
+        log.info("Session ID: {}", sessionIdToUse);
+        log.info("Authentication: {}", authentication != null ? "Authenticated" : "Anonymous");
+        
+        try {
+            CouponApplicationResult result = cartService.applyCoupon(userId, sessionIdToUse, request.getCode());
+            log.info("Coupon application result: success={}, message={}", result.isSuccess(), result.getMessage());
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error applying coupon: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @DeleteMapping("/apply-coupon")
+    public ResponseEntity<Void> removeCoupon(
+            Authentication authentication,
+            @RequestParam(required = false) String sessionId,
+            HttpServletRequest request) {
+        
+        String userId = authentication != null ? authentication.getName() : null;
+        String sessionIdToUse = sessionId != null ? sessionId : getSessionId(request);
+        
+        log.debug("Removing coupon from cart for userId: {}", userId);
+        
+        cartService.removeCoupon(userId, sessionIdToUse);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/with-coupon")
+    public ResponseEntity<CartDto> getCartWithCoupon(
+            Authentication authentication,
+            @RequestParam(required = false) String couponCode,
+            @RequestParam(required = false) String sessionId,
+            HttpServletRequest request) {
+        
+        String userId = authentication != null ? authentication.getName() : null;
+        String sessionIdToUse = sessionId != null ? sessionId : getSessionId(request);
+        
+        log.debug("Getting cart with coupon validation for userId: {}, coupon: {}", userId, couponCode);
+        
+        CartDto cart = cartService.getCartWithCoupon(userId, sessionIdToUse, couponCode);
+        return ResponseEntity.ok(cart);
+    }
+
 
     private String getSessionId(HttpServletRequest request) {
         // Generate a simple session ID based on request attributes

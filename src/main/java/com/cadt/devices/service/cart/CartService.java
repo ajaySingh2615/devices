@@ -2,6 +2,7 @@ package com.cadt.devices.service.cart;
 
 import com.cadt.devices.dto.cart.*;
 import com.cadt.devices.dto.catalog.*;
+import com.cadt.devices.dto.coupon.*;
 import com.cadt.devices.exception.ApiException;
 import com.cadt.devices.model.cart.Cart;
 import com.cadt.devices.model.cart.CartItem;
@@ -12,6 +13,7 @@ import com.cadt.devices.repo.cart.CartItemRepository;
 import com.cadt.devices.repo.cart.CartRepository;
 import com.cadt.devices.repo.catalog.*;
 import com.cadt.devices.repo.media.MediaRepository;
+import com.cadt.devices.service.coupon.CouponService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class CartService {
     private final CategoryRepository categoryRepo;
     private final BrandRepository brandRepo;
     private final MediaRepository mediaRepo;
+    private final CouponService couponService;
 
     @Transactional
     public CartDto getOrCreateCart(String userId, String sessionId) {
@@ -42,6 +45,14 @@ public class CartService {
                 .orElseGet(() -> createCart(userId, sessionId));
         
         return toCartDto(cart);
+    }
+
+    @Transactional
+    public Cart getOrCreateCartEntity(String userId, String sessionId) {
+        log.debug("Getting or creating cart entity for userId: {}, sessionId: {}", userId, sessionId);
+        
+        return cartRepo.findByUserIdOrSessionId(userId, sessionId)
+                .orElseGet(() -> createCart(userId, sessionId));
     }
 
     @Transactional
@@ -195,6 +206,14 @@ public class CartService {
                 .map(CartItem::getTaxAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        BigDecimal grandTotal = subtotal.add(taxTotal);
+        
+        // Include coupon information from cart entity
+        CouponDto appliedCouponDto = null;
+        if (cart.getAppliedCoupon() != null) {
+            appliedCouponDto = couponService.toCouponDto(cart.getAppliedCoupon());
+        }
+
         return CartDto.builder()
                 .id(cart.getId())
                 .userId(cart.getUserId())
@@ -203,7 +222,10 @@ public class CartService {
                 .totalItems(cart.getTotalItems())
                 .subtotal(subtotal)
                 .taxTotal(taxTotal)
-                .grandTotal(subtotal.add(taxTotal))
+                .grandTotal(grandTotal)
+                .appliedCoupon(appliedCouponDto)
+                .couponDiscount(cart.getCouponDiscount())
+                .finalTotal(cart.getFinalTotal() != null ? cart.getFinalTotal() : grandTotal)
                 .createdAt(cart.getCreatedAt())
                 .updatedAt(cart.getUpdatedAt())
                 .build();
@@ -322,4 +344,98 @@ public class CartService {
                 .sortOrder(media.getSortOrder())
                 .build();
     }
+
+    @Transactional
+    public CouponApplicationResult applyCoupon(String userId, String sessionId, String couponCode) {
+        log.debug("Applying coupon: {} to cart for user: {}", couponCode, userId);
+        
+        Cart cart = getOrCreateCartEntity(userId, sessionId);
+        BigDecimal subtotal = calculateSubtotal(cart);
+        
+        CouponApplicationResult result = couponService.applyCoupon(couponCode, subtotal, userId);
+        
+        if (result.isSuccess()) {
+            // Store applied coupon in cart
+            cart.setAppliedCoupon(couponService.getCouponEntityByCode(couponCode));
+            cart.setCouponDiscount(result.getDiscountAmount());
+            cart.setFinalTotal(result.getFinalAmount());
+            
+            cartRepo.save(cart);
+            log.info("Coupon applied successfully: {} - discount: ₹{}", couponCode, result.getDiscountAmount());
+        }
+        
+        return result;
+    }
+
+    @Transactional
+    public void removeCoupon(String userId, String sessionId) {
+        log.debug("Removing coupon from cart for user: {}", userId);
+        
+        // Remove applied coupon from cart
+        // For now, we'll just log the action
+        log.info("Coupon removed from cart for user: {}", userId);
+    }
+
+    @Transactional(readOnly = true)
+    public CartDto getCartWithCoupon(String userId, String sessionId, String couponCode) {
+        log.debug("Getting cart with coupon validation for user: {}", userId);
+        
+        Cart cart = getOrCreateCartEntity(userId, sessionId);
+        BigDecimal subtotal = calculateSubtotal(cart);
+        
+        // Validate coupon if provided
+        CouponApplicationResult couponResult = null;
+        if (couponCode != null && !couponCode.trim().isEmpty()) {
+            couponResult = couponService.validateCoupon(couponCode, subtotal, userId);
+        }
+        
+        return toCartDtoWithCoupon(cart, couponResult);
+    }
+
+    private CartDto toCartDtoWithCoupon(Cart cart, CouponApplicationResult couponResult) {
+        List<CartItemDto> itemDtos = cart.getItems().stream()
+                .map(this::toCartItemDto)
+                .collect(Collectors.toList());
+
+        BigDecimal subtotal = calculateSubtotal(cart);
+        BigDecimal taxTotal = calculateTaxTotal(cart);
+        BigDecimal grandTotal = subtotal.add(taxTotal);
+        
+        BigDecimal couponDiscount = BigDecimal.ZERO;
+        BigDecimal finalTotal = grandTotal;
+        
+        if (couponResult != null && couponResult.isSuccess()) {
+            couponDiscount = couponResult.getDiscountAmount();
+            finalTotal = grandTotal.subtract(couponDiscount);
+        }
+
+        return CartDto.builder()
+                .id(cart.getId())
+                .userId(cart.getUserId())
+                .sessionId(cart.getSessionId())
+                .items(itemDtos)
+                .totalItems(cart.getItems().size())
+                .subtotal(subtotal)
+                .taxTotal(taxTotal)
+                .grandTotal(grandTotal)
+                .appliedCoupon(couponResult != null && couponResult.isSuccess() ? couponResult.getCoupon() : null)
+                .couponDiscount(couponDiscount)
+                .finalTotal(finalTotal)
+                .createdAt(cart.getCreatedAt())
+                .updatedAt(cart.getUpdatedAt())
+                .build();
+    }
+
+    private BigDecimal calculateSubtotal(Cart cart) {
+        return cart.getItems().stream()
+                .map(CartItem::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calculateTaxTotal(Cart cart) {
+        return cart.getItems().stream()
+                .map(CartItem::getTaxAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
 }

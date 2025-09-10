@@ -1,9 +1,11 @@
 package com.cadt.devices.model.cart;
 
 import com.cadt.devices.model.common.BaseEntity;
+import com.cadt.devices.model.coupon.Coupon;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +30,17 @@ public class Cart extends BaseEntity {
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();
+
+    // Coupon information
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "applied_coupon_id")
+    private Coupon appliedCoupon;
+
+    @Column(name = "coupon_discount", precision = 10, scale = 2)
+    private BigDecimal couponDiscount;
+
+    @Column(name = "final_total", precision = 10, scale = 2)
+    private BigDecimal finalTotal;
 
     // Helper methods
     public void addItem(CartItem item) {
