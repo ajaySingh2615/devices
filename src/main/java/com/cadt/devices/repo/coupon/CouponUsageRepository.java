@@ -20,4 +20,6 @@ public interface CouponUsageRepository extends JpaRepository<CouponUsage, String
     List<CouponUsage> findByUserId(String userId);
     
     List<CouponUsage> findByOrderId(String orderId);
+    
+    List<CouponUsage> findByCouponId(String couponId);
 }
