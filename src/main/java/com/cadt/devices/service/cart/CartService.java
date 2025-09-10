@@ -371,8 +371,14 @@ public class CartService {
     public void removeCoupon(String userId, String sessionId) {
         log.debug("Removing coupon from cart for user: {}", userId);
         
-        // Remove applied coupon from cart
-        // For now, we'll just log the action
+        Cart cart = getOrCreateCartEntity(userId, sessionId);
+        
+        // Clear applied coupon from cart
+        cart.setAppliedCoupon(null);
+        cart.setCouponDiscount(null);
+        cart.setFinalTotal(null);
+        
+        cartRepo.save(cart);
         log.info("Coupon removed from cart for user: {}", userId);
     }
 
