@@ -79,6 +79,13 @@
             <version>2.8.1</version>
         </dependency>
 
+        <!-- Razorpay Java SDK -->
+        <dependency>
+            <groupId>com.razorpay</groupId>
+            <artifactId>razorpay-java</artifactId>
+            <version>1.4.5</version>
+        </dependency>
+
         <!-- Cloudinary for media upload -->
         <dependency>
             <groupId>com.cloudinary</groupId>
