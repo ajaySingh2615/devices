@@ -3,6 +3,7 @@ package com.cadt.devices.controller.order;
 import com.cadt.devices.dto.order.OrderDto;
 import com.cadt.devices.dto.order.PlaceOrderRequest;
 import com.cadt.devices.dto.order.PlaceOrderResponse;
+import com.cadt.devices.dto.order.UpdateOrderStatusRequest;
 import com.cadt.devices.service.order.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -63,16 +64,17 @@ public class OrderController {
     }
 
     @GetMapping("/{orderId}")
-    @PreAuthorize("hasRole('CUSTOMER')")
+    @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
     public ResponseEntity<OrderDto> getOrderById(
             @PathVariable String orderId,
             Authentication authentication) {
-        String userId = authentication.getName();
-        log.debug("Getting order: {} for user: {}", orderId, userId);
-        
-        OrderDto order = orderService.getOrderById(orderId, userId);
-        
-        return ResponseEntity.ok(order);
+        if (authentication != null && authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            log.debug("Admin fetching order: {}", orderId);
+            return ResponseEntity.ok(orderService.getOrderByIdAdmin(orderId));
+        }
+        String userId = authentication != null ? authentication.getName() : null;
+        log.debug("Customer fetching order: {} for user: {}", orderId, userId);
+        return ResponseEntity.ok(orderService.getOrderById(orderId, userId));
     }
 
     @GetMapping("/admin/all")
@@ -93,5 +95,14 @@ public class OrderController {
         Page<OrderDto> orders = orderService.getAllOrders(pageable);
         
         return ResponseEntity.ok(orders);
+    }
+
+    @PatchMapping("/admin/{orderId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderDto> updateOrderStatus(
+            @PathVariable String orderId,
+            @Valid @RequestBody UpdateOrderStatusRequest r) {
+        log.info("Admin: updating status for order {} to {}", orderId, r.getStatus());
+        return ResponseEntity.ok(orderService.updateStatus(orderId, r.getStatus()));
     }
 }

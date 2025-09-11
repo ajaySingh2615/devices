@@ -224,6 +224,14 @@ public class OrderService {
     }
 
     @Transactional(readOnly = true)
+    public OrderDto getOrderByIdAdmin(String orderId) {
+        log.debug("Admin: getting order: {}", orderId);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ApiException("ORDER_NOT_FOUND", "Order not found"));
+        return toOrderDto(order);
+    }
+
+    @Transactional(readOnly = true)
     public List<OrderDto> getAllOrders() {
         log.debug("Getting all orders");
         
@@ -239,6 +247,21 @@ public class OrderService {
         
         Page<Order> orders = orderRepository.findAll(pageable);
         return orders.map(this::toOrderDto);
+    }
+
+    @Transactional
+    public OrderDto updateStatus(String orderId, String status) {
+        log.info("Updating order status: orderId={}, status={}", orderId, status);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ApiException("ORDER_NOT_FOUND", "Order not found"));
+        try {
+            OrderStatus newStatus = OrderStatus.valueOf(status);
+            order.setStatus(newStatus);
+            order = orderRepository.save(order);
+            return toOrderDto(order);
+        } catch (IllegalArgumentException e) {
+            throw new ApiException("INVALID_ORDER_STATUS", "Invalid order status: " + status);
+        }
     }
 
     private OrderDto toOrderDto(Order order) {
