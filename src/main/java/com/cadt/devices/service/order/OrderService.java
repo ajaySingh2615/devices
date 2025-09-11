@@ -310,12 +310,39 @@ public class OrderService {
     }
 
     private String createProductSnapshot(com.cadt.devices.dto.cart.CartItemDto item) {
-        // Create a JSON snapshot of product details at time of order
-        // This is useful for order history even if product details change later
-        return String.format("{\"productId\":\"%s\",\"title\":\"%s\",\"brand\":\"%s\",\"category\":\"%s\"}",
-                item.getProduct() != null ? item.getProduct().getId() : "",
-                item.getProduct() != null ? item.getProduct().getTitle() : "Product",
-                item.getProduct() != null && item.getProduct().getBrand() != null ? item.getProduct().getBrand().getName() : "",
-                item.getProduct() != null && item.getProduct().getCategory() != null ? item.getProduct().getCategory().getName() : "");
+        // Create a JSON snapshot of product details at time of order, including imageUrl if available
+        String productId = item.getProduct() != null ? item.getProduct().getId() : "";
+        String title = item.getProduct() != null ? item.getProduct().getTitle() : "Product";
+        String brand = item.getProduct() != null && item.getProduct().getBrand() != null ? item.getProduct().getBrand().getName() : "";
+        String category = item.getProduct() != null && item.getProduct().getCategory() != null ? item.getProduct().getCategory().getName() : "";
+        String imageUrl = "";
+        try {
+            if (item.getProduct() != null && item.getProduct().getImages() != null && !item.getProduct().getImages().isEmpty()) {
+                var first = item.getProduct().getImages().get(0);
+                if (first != null && first.getUrl() != null) {
+                    imageUrl = first.getUrl();
+                }
+            }
+        } catch (Exception ignore) {}
+
+        // Manually build JSON to avoid escaping issues
+        StringBuilder sb = new StringBuilder(200);
+        sb.append('{')
+          .append("\"productId\":\"").append(escapeJson(productId)).append('\"')
+          .append(',')
+          .append("\"title\":\"").append(escapeJson(title)).append('\"')
+          .append(',')
+          .append("\"brand\":\"").append(escapeJson(brand)).append('\"')
+          .append(',')
+          .append("\"category\":\"").append(escapeJson(category)).append('\"')
+          .append(',')
+          .append("\"imageUrl\":\"").append(escapeJson(imageUrl)).append('\"')
+          .append('}');
+        return sb.toString();
+    }
+
+    private static String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
