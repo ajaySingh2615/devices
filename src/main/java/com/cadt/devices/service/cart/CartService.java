@@ -144,6 +144,17 @@ public class CartService {
     }
 
     @Transactional
+    public void clearAllCartsFor(String userId, String sessionId) {
+        log.debug("Clearing all carts for userId={}, sessionId={}", userId, sessionId);
+        // Clear by user cart if exists
+        cartRepo.findByUserId(userId).ifPresent(c -> cartItemRepo.deleteByCartId(c.getId()));
+        // Clear by session cart if exists
+        if (sessionId != null) {
+            cartRepo.findBySessionId(sessionId).ifPresent(c -> cartItemRepo.deleteByCartId(c.getId()));
+        }
+    }
+
+    @Transactional
     public CartDto mergeCarts(String userId, String sessionId) {
         log.debug("Merging carts: userId={}, sessionId={}", userId, sessionId);
 

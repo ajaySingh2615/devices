@@ -81,6 +81,12 @@ public class AddressService {
         return toDto(addresses.save(a));
     }
 
+    @Transactional(readOnly = true)
+    public AddressDto getForUser(String userId, String id) {
+        Address a = getOwned(userId, id);
+        return toDto(a);
+    }
+
     private void unsetDefault(String userId) {
         addresses.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId).stream()
                 .filter(Address::isDefault)
