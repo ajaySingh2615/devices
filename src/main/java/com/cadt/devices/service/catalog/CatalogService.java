@@ -29,6 +29,7 @@ public class CatalogService {
     private final ProductVariantRepository variantRepo;
     private final InventoryRepository inventoryRepo;
     private final MediaRepository mediaRepo;
+    private final com.cadt.devices.service.review.ReviewService reviewService;
 
     @Transactional
     public CategoryDto updateCategory(String id, UpdateCategoryRequest request) {
@@ -460,6 +461,12 @@ public class CatalogService {
         List<Media> media = mediaRepo.findByOwnerTypeAndOwnerIdOrderBySortOrder(MediaOwnerType.PRODUCT, product.getId());
         dto.setImages(media.stream().map(this::toMediaDto).collect(Collectors.toList()));
         
+        try {
+            var summary = reviewService.getProductReviewSummary(product.getId());
+            dto.setAverageRating(summary.getAverageRating());
+            dto.setTotalReviews(summary.getTotalReviews());
+        } catch (Exception ignored) {}
+
         return dto;
     }
     

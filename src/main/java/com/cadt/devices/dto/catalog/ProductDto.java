@@ -30,4 +30,8 @@ public class ProductDto {
     private BrandDto brand;
     private List<ProductVariantDto> variants;
     private List<MediaDto> images;
+
+    // Aggregates
+    private Double averageRating;
+    private Long totalReviews;
 }
