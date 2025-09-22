@@ -4,6 +4,7 @@ import com.cadt.devices.model.catalog.ConditionGrade;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 public class CreateProductRequest {
@@ -25,4 +26,7 @@ public class CreateProductRequest {
     private ConditionGrade conditionGrade;
     
     private Integer warrantyMonths = 6;
+
+    @JsonProperty("isBestseller")
+    private Boolean isBestseller;
 }

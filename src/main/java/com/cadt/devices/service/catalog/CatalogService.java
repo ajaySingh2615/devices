@@ -8,6 +8,7 @@ import com.cadt.devices.model.media.MediaOwnerType;
 import com.cadt.devices.repo.catalog.*;
 import com.cadt.devices.repo.media.MediaRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CatalogService {
     
     private final CategoryRepository categoryRepo;
@@ -82,6 +84,7 @@ public class CatalogService {
 
     @Transactional
     public ProductDto createProduct(CreateProductRequest request) {
+        log.info("CreateProduct: isBestseller={} title={} slug={}", request.getIsBestseller(), request.getTitle(), request.getSlug());
         if (productRepo.existsBySlug(request.getSlug())) {
             throw new ApiException("SLUG_EXISTS", "Product slug already exists");
         }
@@ -102,13 +105,17 @@ public class CatalogService {
                 .description(request.getDescription())
                 .conditionGrade(request.getConditionGrade())
                 .warrantyMonths(request.getWarrantyMonths())
+                .isBestseller(Boolean.TRUE.equals(request.getIsBestseller()))
                 .build();
 
-        return toProductDto(productRepo.save(product));
+        Product saved = productRepo.save(product);
+        log.info("Created Product id={} isBestseller={}", saved.getId(), saved.isBestseller());
+        return toProductDto(saved);
     }
 
     @Transactional
     public ProductDto updateProduct(String id, UpdateProductRequest request) {
+        log.info("UpdateProduct: id={} isBestseller={} title={} slug={} isActive={}", id, request.getIsBestseller(), request.getTitle(), request.getSlug(), request.getIsActive());
         Product product = productRepo.findById(id)
                 .orElseThrow(() -> new ApiException("PRODUCT_NOT_FOUND", "Product not found"));
 
@@ -135,8 +142,11 @@ public class CatalogService {
         if (request.getConditionGrade() != null) product.setConditionGrade(request.getConditionGrade());
         if (request.getWarrantyMonths() != null) product.setWarrantyMonths(request.getWarrantyMonths());
         if (request.getIsActive() != null) product.setActive(request.getIsActive());
+        if (request.getIsBestseller() != null) product.setBestseller(request.getIsBestseller());
 
-        return toProductDto(productRepo.save(product));
+        Product saved = productRepo.save(product);
+        log.info("Updated Product id={} isBestseller={}", saved.getId(), saved.isBestseller());
+        return toProductDto(saved);
     }
 
     @Transactional
@@ -379,6 +389,12 @@ public class CatalogService {
                 .orElseThrow(() -> new ApiException("PRODUCT_NOT_FOUND", "Product not found"));
         return toProductDtoWithDetails(product);
     }
+
+    public Page<ProductDto> getBestsellers(Pageable pageable) {
+        Page<Product> products = productRepo.findByIsActiveTrueAndIsBestsellerTrueOrderByCreatedAtDesc(pageable);
+        // Include images/variants for homepage cards
+        return products.map(this::toProductDtoWithDetails);
+    }
     
     // Mappers
     private CategoryDto toCategoryDto(Category category) {
@@ -424,6 +440,7 @@ public class CatalogService {
                 .conditionGrade(product.getConditionGrade())
                 .warrantyMonths(product.getWarrantyMonths())
                 .isActive(product.isActive())
+                .isBestseller(product.isBestseller())
                 .createdAt(product.getCreatedAt())
                 .build();
     }

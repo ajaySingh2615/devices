@@ -2,6 +2,7 @@ package com.cadt.devices.dto.catalog;
 
 import com.cadt.devices.model.catalog.ConditionGrade;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 public class UpdateProductRequest {
@@ -13,4 +14,6 @@ public class UpdateProductRequest {
     private ConditionGrade conditionGrade;
     private Integer warrantyMonths;
     private Boolean isActive;
+    @JsonProperty("isBestseller")
+    private Boolean isBestseller;
 }

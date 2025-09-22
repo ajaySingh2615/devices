@@ -50,6 +50,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
             @Param("cpuGeneration") String cpuGeneration,
             Pageable pageable);
 
+    Page<Product> findByIsActiveTrueAndIsBestsellerTrueOrderByCreatedAtDesc(Pageable pageable);
+
     boolean existsBySlug(String slug);
     
     boolean existsByCategoryId(String categoryId);

@@ -50,6 +50,10 @@ public class Product extends BaseEntity {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean isBestseller = false;
+
     // Virtual relationship to variants
     @OneToMany(mappedBy = "productId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<ProductVariant> variants;

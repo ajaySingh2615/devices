@@ -21,6 +21,8 @@ public class ProductDto {
     private int warrantyMonths;
     @JsonProperty("isActive")
     private boolean isActive;
+    @JsonProperty("isBestseller")
+    private boolean isBestseller;
     private Instant createdAt;
 
     // Related Data

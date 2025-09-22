@@ -66,10 +66,15 @@ public class CatalogController {
             @RequestParam(required = false) BigDecimal maxPrice,
             @RequestParam(required = false, name = "processorVendor") String processorVendor,
             @RequestParam(required = false, name = "processorSeries") String processorSeries,
-            @RequestParam(required = false, name = "processorGeneration") String processorGeneration) {
+            @RequestParam(required = false, name = "processorGeneration") String processorGeneration,
+            @RequestParam(required = false, name = "bestseller") Boolean bestseller) {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
         Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
+
+        if (Boolean.TRUE.equals(bestseller)) {
+            return ResponseEntity.ok(catalogService.getBestsellers(pageable));
+        }
 
         return ResponseEntity.ok(catalogService.searchProducts(
                 q, category, brand, condition, minPrice, maxPrice,
