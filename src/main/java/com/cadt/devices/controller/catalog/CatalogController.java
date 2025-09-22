@@ -63,13 +63,18 @@ public class CatalogController {
             @RequestParam(required = false) String brand,
             @RequestParam(required = false) String condition,
             @RequestParam(required = false) BigDecimal minPrice,
-            @RequestParam(required = false) BigDecimal maxPrice) {
+            @RequestParam(required = false) BigDecimal maxPrice,
+            @RequestParam(required = false, name = "processorVendor") String processorVendor,
+            @RequestParam(required = false, name = "processorSeries") String processorSeries,
+            @RequestParam(required = false, name = "processorGeneration") String processorGeneration) {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
         Pageable pageable = PageRequest.of(page, size, sortDirection, sort);
 
         return ResponseEntity.ok(catalogService.searchProducts(
-                q, category, brand, condition, minPrice, maxPrice, pageable));
+                q, category, brand, condition, minPrice, maxPrice,
+                processorVendor, processorSeries, processorGeneration,
+                pageable));
     }
 
     @GetMapping("/products/{slug}")

@@ -24,4 +24,10 @@ public class CreateVariantRequest {
 
     private BigDecimal taxRate;
     private Integer weightGrams;
+
+    // CPU fields
+    private String cpuVendor; // INTEL, AMD, APPLE
+    private String cpuSeries; // i5, Ryzen 5, M1
+    private String cpuGeneration; // 12th Gen
+    private String cpuModel; // i7-1165G7
 }

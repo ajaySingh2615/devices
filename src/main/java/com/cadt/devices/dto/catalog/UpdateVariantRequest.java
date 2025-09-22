@@ -16,4 +16,10 @@ public class UpdateVariantRequest {
     private BigDecimal taxRate;
     private Integer weightGrams;
     private Boolean isActive;
+
+    // CPU fields
+    private String cpuVendor;
+    private String cpuSeries;
+    private String cpuGeneration;
+    private String cpuModel;
 }

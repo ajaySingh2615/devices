@@ -14,7 +14,9 @@ import java.math.BigDecimal;
 @Table(name = "product_variants", indexes = {
         @Index(name = "idx_variant_sku", columnList = "sku", unique = true),
         @Index(name = "idx_variant_product", columnList = "productId"),
-        @Index(name = "idx_variant_price", columnList = "priceSale")
+        @Index(name = "idx_variant_price", columnList = "priceSale"),
+        @Index(name = "idx_variant_cpu_vendor", columnList = "cpuVendor"),
+        @Index(name = "idx_variant_cpu_series", columnList = "cpuSeries")
 })
 @Getter
 @Setter
@@ -57,5 +59,15 @@ public class ProductVariant extends BaseEntity {
     @Builder.Default
     private boolean isActive = true;
 
+    // CPU fields
+    private ProcessorVendor cpuVendor; // INTEL, AMD, APPLE
 
+    @Column(length = 50)
+    private String cpuSeries; // e.g., i5, i7, Ryzen 5, M1
+
+    @Column(length = 50)
+    private String cpuGeneration; // e.g., 10th Gen, 12th Gen
+
+    @Column(length = 80)
+    private String cpuModel; // e.g., i7-1165G7, Ryzen 5 5600U
 }

@@ -155,6 +155,10 @@ public class CatalogService {
                 .color(request.getColor())
                 .storageGb(request.getStorageGb())
                 .ramGb(request.getRamGb())
+                .cpuVendor(request.getCpuVendor() != null ? ProcessorVendor.valueOf(request.getCpuVendor().toUpperCase()) : null)
+                .cpuSeries(request.getCpuSeries())
+                .cpuGeneration(request.getCpuGeneration())
+                .cpuModel(request.getCpuModel())
                 .priceMrp(request.getPriceMrp())
                 .priceSale(request.getPriceSale())
                 .taxRate(request.getTaxRate() != null ? request.getTaxRate() : new BigDecimal("18.00"))
@@ -190,6 +194,10 @@ public class CatalogService {
         if (request.getColor() != null) variant.setColor(request.getColor());
         if (request.getStorageGb() != null) variant.setStorageGb(request.getStorageGb());
         if (request.getRamGb() != null) variant.setRamGb(request.getRamGb());
+        if (request.getCpuVendor() != null) variant.setCpuVendor(ProcessorVendor.valueOf(request.getCpuVendor().toUpperCase()));
+        if (request.getCpuSeries() != null) variant.setCpuSeries(request.getCpuSeries());
+        if (request.getCpuGeneration() != null) variant.setCpuGeneration(request.getCpuGeneration());
+        if (request.getCpuModel() != null) variant.setCpuModel(request.getCpuModel());
         if (request.getPriceMrp() != null) variant.setPriceMrp(request.getPriceMrp());
         if (request.getPriceSale() != null) variant.setPriceSale(request.getPriceSale());
         if (request.getTaxRate() != null) variant.setTaxRate(request.getTaxRate());
@@ -322,7 +330,9 @@ public class CatalogService {
     
     // Products
     public Page<ProductDto> searchProducts(String query, String categorySlug, String brandSlug, 
-            String condition, BigDecimal minPrice, BigDecimal maxPrice, Pageable pageable) {
+            String condition, BigDecimal minPrice, BigDecimal maxPrice, 
+            String processorVendor, String processorSeries, String processorGeneration,
+            Pageable pageable) {
         
         // Convert slugs to IDs
         String categoryId = null;
@@ -348,7 +358,17 @@ public class CatalogService {
         if (query != null && !query.trim().isEmpty()) {
             products = productRepo.searchProducts(query.trim(), pageable);
         } else {
-            products = productRepo.findWithFilters(categoryId, brandId, conditionGrade, minPrice, maxPrice, pageable);
+            ProcessorVendor vendorEnum = null;
+            if (processorVendor != null && !processorVendor.isBlank()) {
+                try {
+                    vendorEnum = ProcessorVendor.valueOf(processorVendor.toUpperCase());
+                } catch (IllegalArgumentException ignored) {}
+            }
+            products = productRepo.findWithFilters(
+                    categoryId, brandId, conditionGrade, minPrice, maxPrice,
+                    vendorEnum,
+                    processorSeries, processorGeneration,
+                    pageable);
         }
         
         return products.map(this::toProductDto);
@@ -441,6 +461,10 @@ public class CatalogService {
                 .weightGrams(variant.getWeightGrams())
                 .isActive(variant.isActive())
                 .createdAt(variant.getCreatedAt())
+                .cpuVendor(variant.getCpuVendor() != null ? variant.getCpuVendor().name() : null)
+                .cpuSeries(variant.getCpuSeries())
+                .cpuGeneration(variant.getCpuGeneration())
+                .cpuModel(variant.getCpuModel())
                 .build();
                 
         // Add inventory

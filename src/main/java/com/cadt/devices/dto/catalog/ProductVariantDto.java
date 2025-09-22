@@ -26,4 +26,10 @@ public class ProductVariantDto {
 
     // Inventory info
     private InventoryDto inventory;
+
+    // CPU info
+    private String cpuVendor; // enum name
+    private String cpuSeries;
+    private String cpuGeneration;
+    private String cpuModel;
 }
