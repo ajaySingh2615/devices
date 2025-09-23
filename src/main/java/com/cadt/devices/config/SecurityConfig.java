@@ -44,6 +44,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/brands/**").permitAll()
                         .requestMatchers("/api/v1/products/**").permitAll()
 
+                        // public reviews read-only endpoints
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/reviews/product/**").permitAll()
+
                         // cart endpoints (support both authenticated and anonymous users)
                         .requestMatchers("/api/v1/cart/**").permitAll()
 
