@@ -170,6 +170,7 @@ public class CatalogService {
                 .cpuSeries(request.getCpuSeries())
                 .cpuGeneration(request.getCpuGeneration())
                 .cpuModel(request.getCpuModel())
+                .operatingSystem(request.getOperatingSystem() != null ? OperatingSystem.valueOf(request.getOperatingSystem().toUpperCase()) : null)
                 .priceMrp(request.getPriceMrp())
                 .priceSale(request.getPriceSale())
                 .taxRate(request.getTaxRate() != null ? request.getTaxRate() : new BigDecimal("18.00"))
@@ -214,6 +215,7 @@ public class CatalogService {
         if (request.getTaxRate() != null) variant.setTaxRate(request.getTaxRate());
         if (request.getWeightGrams() != null) variant.setWeightGrams(request.getWeightGrams());
         if (request.getIsActive() != null) variant.setActive(request.getIsActive());
+        if (request.getOperatingSystem() != null) variant.setOperatingSystem(OperatingSystem.valueOf(request.getOperatingSystem().toUpperCase()));
 
         return toVariantDto(variantRepo.save(variant));
     }
@@ -343,6 +345,7 @@ public class CatalogService {
     public Page<ProductDto> searchProducts(String query, String categorySlug, String brandSlug, 
             String condition, BigDecimal minPrice, BigDecimal maxPrice, 
             String processorVendor, String processorSeries, String processorGeneration,
+            String operatingSystem,
             Pageable pageable) {
         
         // Convert slugs to IDs
@@ -375,10 +378,17 @@ public class CatalogService {
                     vendorEnum = ProcessorVendor.valueOf(processorVendor.toUpperCase());
                 } catch (IllegalArgumentException ignored) {}
             }
+            OperatingSystem osEnum = null;
+            if (operatingSystem != null && !operatingSystem.isBlank()) {
+                try {
+                    osEnum = OperatingSystem.valueOf(operatingSystem.toUpperCase());
+                } catch (IllegalArgumentException ignored) {}
+            }
             products = productRepo.findWithFilters(
                     categoryId, brandId, conditionGrade, minPrice, maxPrice,
                     vendorEnum,
                     processorSeries, processorGeneration,
+                    osEnum,
                     pageable);
         }
         
@@ -489,6 +499,7 @@ public class CatalogService {
                 .cpuSeries(variant.getCpuSeries())
                 .cpuGeneration(variant.getCpuGeneration())
                 .cpuModel(variant.getCpuModel())
+                .operatingSystem(variant.getOperatingSystem() != null ? variant.getOperatingSystem().name() : null)
                 .build();
                 
         // Add inventory

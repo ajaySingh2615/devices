@@ -1,10 +1,7 @@
 package com.cadt.devices.model.catalog;
 
 import com.cadt.devices.model.common.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -16,7 +13,8 @@ import java.math.BigDecimal;
         @Index(name = "idx_variant_product", columnList = "productId"),
         @Index(name = "idx_variant_price", columnList = "priceSale"),
         @Index(name = "idx_variant_cpu_vendor", columnList = "cpuVendor"),
-        @Index(name = "idx_variant_cpu_series", columnList = "cpuSeries")
+        @Index(name = "idx_variant_cpu_series", columnList = "cpuSeries"),
+        @Index(name = "idx_variant_os", columnList = "operatingSystem")
 })
 @Getter
 @Setter
@@ -70,4 +68,7 @@ public class ProductVariant extends BaseEntity {
 
     @Column(length = 80)
     private String cpuModel; // e.g., i7-1165G7, Ryzen 5 5600U
+
+    @Enumerated(EnumType.STRING)
+    private OperatingSystem operatingSystem; // WINDOWS, MACOS, etc.
 }

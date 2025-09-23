@@ -30,4 +30,7 @@ public class CreateVariantRequest {
     private String cpuSeries; // i5, Ryzen 5, M1
     private String cpuGeneration; // 12th Gen
     private String cpuModel; // i7-1165G7
+
+    // Operating system
+    private String operatingSystem; // WINDOWS, MACOS, LINUX, CHROME
 }

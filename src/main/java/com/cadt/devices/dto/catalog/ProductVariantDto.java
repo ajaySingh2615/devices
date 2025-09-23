@@ -32,4 +32,7 @@ public class ProductVariantDto {
     private String cpuSeries;
     private String cpuGeneration;
     private String cpuModel;
+
+    // Operating system
+    private String operatingSystem; // enum name
 }
