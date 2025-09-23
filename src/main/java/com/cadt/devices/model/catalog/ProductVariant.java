@@ -71,4 +71,9 @@ public class ProductVariant extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private OperatingSystem operatingSystem; // WINDOWS, MACOS, etc.
+
+    private Boolean touchscreen; // whether the device supports touch
+
+    @Enumerated(EnumType.STRING)
+    private UseCase useCase; // MULTI_TASKING, EVERYDAY_NEEDS
 }

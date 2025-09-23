@@ -25,4 +25,8 @@ public class UpdateVariantRequest {
 
     // Operating system
     private String operatingSystem;
+
+    // Features
+    private Boolean touchscreen;
+    private String useCase;
 }

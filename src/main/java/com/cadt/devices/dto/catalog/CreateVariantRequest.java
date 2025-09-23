@@ -33,4 +33,8 @@ public class CreateVariantRequest {
 
     // Operating system
     private String operatingSystem; // WINDOWS, MACOS, LINUX, CHROME
+
+    // Features
+    private Boolean touchscreen;
+    private String useCase; // MULTI_TASKING, EVERYDAY_NEEDS
 }

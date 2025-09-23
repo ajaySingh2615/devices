@@ -1,9 +1,6 @@
 package com.cadt.devices.repo.catalog;
 
-import com.cadt.devices.model.catalog.ConditionGrade;
-import com.cadt.devices.model.catalog.Product;
-import com.cadt.devices.model.catalog.ProcessorVendor;
-import com.cadt.devices.model.catalog.OperatingSystem;
+import com.cadt.devices.model.catalog.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,7 +37,9 @@ public interface ProductRepository extends JpaRepository<Product, String> {
             "AND (:cpuVendor IS NULL OR v.cpuVendor = :cpuVendor) " +
             "AND (:cpuSeries IS NULL OR LOWER(v.cpuSeries) = LOWER(:cpuSeries)) " +
             "AND (:cpuGeneration IS NULL OR LOWER(v.cpuGeneration) = LOWER(:cpuGeneration)) " +
-            "AND (:operatingSystem IS NULL OR v.operatingSystem = :operatingSystem)")
+            "AND (:operatingSystem IS NULL OR v.operatingSystem = :operatingSystem) " +
+            "AND (:touchscreen IS NULL OR v.touchscreen = :touchscreen) " +
+            "AND (:useCase IS NULL OR v.useCase = :useCase)")
     Page<Product> findWithFilters(
             @Param("categoryId") String categoryId,
             @Param("brandId") String brandId,
@@ -51,6 +50,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
             @Param("cpuSeries") String cpuSeries,
             @Param("cpuGeneration") String cpuGeneration,
             @Param("operatingSystem") OperatingSystem operatingSystem,
+            @Param("touchscreen") Boolean touchscreen,
+            @Param("useCase") UseCase useCase,
             Pageable pageable);
 
     Page<Product> findByIsActiveTrueAndIsBestsellerTrueOrderByCreatedAtDesc(Pageable pageable);

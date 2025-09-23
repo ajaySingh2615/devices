@@ -35,4 +35,8 @@ public class ProductVariantDto {
 
     // Operating system
     private String operatingSystem; // enum name
+
+    // Features
+    private Boolean touchscreen;
+    private String useCase;
 }

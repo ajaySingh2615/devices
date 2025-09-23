@@ -171,6 +171,8 @@ public class CatalogService {
                 .cpuGeneration(request.getCpuGeneration())
                 .cpuModel(request.getCpuModel())
                 .operatingSystem(request.getOperatingSystem() != null ? OperatingSystem.valueOf(request.getOperatingSystem().toUpperCase()) : null)
+                .touchscreen(request.getTouchscreen())
+                .useCase(request.getUseCase() != null ? UseCase.valueOf(request.getUseCase().toUpperCase()) : null)
                 .priceMrp(request.getPriceMrp())
                 .priceSale(request.getPriceSale())
                 .taxRate(request.getTaxRate() != null ? request.getTaxRate() : new BigDecimal("18.00"))
@@ -216,6 +218,8 @@ public class CatalogService {
         if (request.getWeightGrams() != null) variant.setWeightGrams(request.getWeightGrams());
         if (request.getIsActive() != null) variant.setActive(request.getIsActive());
         if (request.getOperatingSystem() != null) variant.setOperatingSystem(OperatingSystem.valueOf(request.getOperatingSystem().toUpperCase()));
+        if (request.getTouchscreen() != null) variant.setTouchscreen(request.getTouchscreen());
+        if (request.getUseCase() != null) variant.setUseCase(UseCase.valueOf(request.getUseCase().toUpperCase()));
 
         return toVariantDto(variantRepo.save(variant));
     }
@@ -345,7 +349,7 @@ public class CatalogService {
     public Page<ProductDto> searchProducts(String query, String categorySlug, String brandSlug, 
             String condition, BigDecimal minPrice, BigDecimal maxPrice, 
             String processorVendor, String processorSeries, String processorGeneration,
-            String operatingSystem,
+            String operatingSystem, Boolean touchscreen, String useCase,
             Pageable pageable) {
         
         // Convert slugs to IDs
@@ -384,11 +388,19 @@ public class CatalogService {
                     osEnum = OperatingSystem.valueOf(operatingSystem.toUpperCase());
                 } catch (IllegalArgumentException ignored) {}
             }
+            UseCase useCaseEnum = null;
+            if (useCase != null && !useCase.isBlank()) {
+                try {
+                    useCaseEnum = UseCase.valueOf(useCase.toUpperCase());
+                } catch (IllegalArgumentException ignored) {}
+            }
             products = productRepo.findWithFilters(
                     categoryId, brandId, conditionGrade, minPrice, maxPrice,
                     vendorEnum,
                     processorSeries, processorGeneration,
                     osEnum,
+                    touchscreen,
+                    useCaseEnum,
                     pageable);
         }
         
@@ -500,6 +512,8 @@ public class CatalogService {
                 .cpuGeneration(variant.getCpuGeneration())
                 .cpuModel(variant.getCpuModel())
                 .operatingSystem(variant.getOperatingSystem() != null ? variant.getOperatingSystem().name() : null)
+                .touchscreen(variant.getTouchscreen())
+                .useCase(variant.getUseCase() != null ? variant.getUseCase().name() : null)
                 .build();
                 
         // Add inventory
