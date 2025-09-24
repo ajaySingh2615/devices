@@ -57,16 +57,16 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     Page<Product> findByIsActiveTrueAndIsBestsellerTrueOrderByCreatedAtDesc(Pageable pageable);
 
     boolean existsBySlug(String slug);
-    
+
     boolean existsByCategoryId(String categoryId);
-    
+
     // Admin dashboard queries
     long countByIsActiveTrue();
-    
+
     long countByCreatedAtAfter(Instant date);
-    
+
     long countByCreatedAtBetween(Instant start, Instant end);
-    
+
     @Query("SELECT p FROM Product p WHERE p.createdAt > :date ORDER BY p.createdAt DESC")
     List<Product> findByCreatedAtAfterOrderByCreatedAtDesc(@Param("date") Instant date);
 }
