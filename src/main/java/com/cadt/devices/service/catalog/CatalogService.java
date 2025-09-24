@@ -155,13 +155,17 @@ public class CatalogService {
         if (!productRepo.existsById(productId)) {
             throw new ApiException("PRODUCT_NOT_FOUND", "Product not found");
         }
-        if (variantRepo.existsBySku(request.getSku())) {
+        // Generate SKU if missing; ensure uniqueness
+        String incomingSku = request.getSku();
+        if (incomingSku == null || incomingSku.isBlank()) {
+            incomingSku = generateUniqueSku();
+        } else if (variantRepo.existsBySku(incomingSku)) {
             throw new ApiException("SKU_EXISTS", "SKU already exists");
         }
 
         ProductVariant variant = ProductVariant.builder()
                 .productId(productId)
-                .sku(request.getSku())
+                .sku(incomingSku)
                 .mpn(request.getMpn())
                 .color(request.getColor())
                 .storageGb(request.getStorageGb())
@@ -191,6 +195,22 @@ public class CatalogService {
         inventoryRepo.save(inventory);
 
         return toVariantDto(variant);
+    }
+
+    private String generateUniqueSku() {
+        // Try a few times to generate a unique human-friendly SKU
+        for (int i = 0; i < 10; i++) {
+            String candidate = ("SKU-" + Long.toString(System.currentTimeMillis(), 36)
+                    + "-" + Integer.toString((int) (Math.random() * 1_000_000), 36))
+                    .toUpperCase()
+                    .replaceAll("[^A-Z0-9-]", "");
+            if (!variantRepo.existsBySku(candidate)) {
+                return candidate;
+            }
+        }
+        // Fallback to UUID-based
+        String fallback = ("SKU-" + java.util.UUID.randomUUID().toString().replaceAll("[^A-Za-z0-9]", "")).toUpperCase();
+        return fallback.length() > 24 ? fallback.substring(0, 24) : fallback;
     }
 
     @Transactional
