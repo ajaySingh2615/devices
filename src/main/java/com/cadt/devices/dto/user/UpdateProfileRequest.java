@@ -12,4 +12,9 @@ public class UpdateProfileRequest {
     private String name;
     private String phone;
     private String avatarUrl;
+
+    // New optional fields
+    private String firstName;
+    private String lastName;
+    private String gender; // MALE, FEMALE, UNSPECIFIED
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import java.time.Instant;
 
 
 @Entity
@@ -33,6 +34,24 @@ public class User extends BaseEntity {
     @NotBlank
     @Column(length = 120, nullable = false)
     private String name;
+
+    @Column(name = "first_name", length = 80)
+    private String firstName;
+
+    @Column(name = "last_name", length = 80)
+    private String lastName;
+
+    public enum Gender { MALE, FEMALE, UNSPECIFIED }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "gender", length = 16)
+    private Gender gender;
+
+    @Column(name = "email_verified_at")
+    private Instant emailVerifiedAt;
+
+    @Column(name = "phone_verified_at")
+    private Instant phoneVerifiedAt;
 
     private String avatarUrl;
 

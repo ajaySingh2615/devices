@@ -34,6 +34,13 @@ public class UserService {
         // Normalize phone number for consistency
         u.setPhone(PhoneUtil.normalizePhone(r.getPhone()));
         u.setAvatarUrl(r.getAvatarUrl());
+        if (r.getFirstName() != null) u.setFirstName(r.getFirstName());
+        if (r.getLastName() != null) u.setLastName(r.getLastName());
+        if (r.getGender() != null) {
+            try {
+                u.setGender(User.Gender.valueOf(r.getGender().toUpperCase()));
+            } catch (IllegalArgumentException ignored) {}
+        }
         return userRepository.save(u);
     }
 
@@ -84,12 +91,17 @@ public class UserService {
         return new UserResponse(
                 user.getId(),
                 user.getName(),
+                user.getFirstName(),
+                user.getLastName(),
                 user.getEmail(),
                 user.getPhone(),
                 user.getRole().name(),
                 user.getAvatarUrl(),
                 user.getStatus().name(),
-                user.getCreatedAt()
+                user.getGender() != null ? user.getGender().name() : null,
+                user.getCreatedAt(),
+                user.getEmailVerifiedAt(),
+                user.getPhoneVerifiedAt()
         );
     }
 }
