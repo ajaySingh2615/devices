@@ -14,6 +14,8 @@ import com.cadt.devices.repo.user.UserRepository;
 import com.cadt.devices.security.JwtService;
 import com.cadt.devices.util.PhoneUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
     private final UserRepository users;
     private final RefreshTokenRepository refreshRepo;
     private final PasswordResetTokenRepository resetRepo;
@@ -36,10 +39,12 @@ public class AuthService {
     private final AuditLogRepository audits;
     private final GoogleTokenVerifier gtv;
     private final OtpService otp;
+    private final com.cadt.devices.service.common.EmailService emailService;
+    private final com.cadt.devices.service.common.EmailTemplates emails;
     private final long refreshExpDays;
 
     public AuthService(UserRepository u, RefreshTokenRepository rfr, PasswordResetTokenRepository pr, PasswordEncoder pe, JwtService js,
-                       AuditLogRepository ar, GoogleTokenVerifier gtv, OtpService otp, @Value("${security.jwt.refresh-exp-days}") long rd) {
+                       AuditLogRepository ar, GoogleTokenVerifier gtv, OtpService otp, com.cadt.devices.service.common.EmailService emailService, com.cadt.devices.service.common.EmailTemplates emails, @Value("${security.jwt.refresh-exp-days}") long rd) {
         this.users = u;
         this.refreshRepo = rfr;
         this.resetRepo = pr;
@@ -48,6 +53,8 @@ public class AuthService {
         this.audits = ar;
         this.gtv = gtv;
         this.otp = otp;
+        this.emailService = emailService;
+        this.emails = emails;
         this.refreshExpDays = rd;
     }
 
@@ -68,6 +75,14 @@ public class AuthService {
                 .passwordHash(encoder.encode(req.getPassword())).role(Role.CUSTOMER).build());
         var tokens = issue(u, ip, ua);
         audit(u.getId(), "REGISTER", ip);
+        // send welcome email (best effort)
+        try {
+            log.info("[register] sending welcome email to={}", u.getEmail());
+            emailService.sendEmail(u.getEmail(), "Welcome to DeviceHub", emails.welcomeHtml(u.getName()));
+            log.info("[register] welcome email queued via Resend to={}", u.getEmail());
+        } catch (Exception e) {
+            log.error("[register] welcome email failed to={}", u.getEmail(), e);
+        }
         return tokens;
     }
 
@@ -122,13 +137,24 @@ public class AuthService {
         String email = (String) p.get("email");
         String sub = p.getSubject();
         String name = (String) p.get("name");
-        var u = users.findByEmail(email).orElseGet(() -> users.save(User.builder().email(email).googleSub(sub).name(name != null ? name : email).role(Role.CUSTOMER).build()));
+        boolean isNew = false;
+        var existingByEmail = users.findByEmail(email);
+        User u;
+        if (existingByEmail.isPresent()) {
+            u = existingByEmail.get();
+        } else {
+            u = users.save(User.builder().email(email).googleSub(sub).name(name != null ? name : email).role(Role.CUSTOMER).build());
+            isNew = true;
+        }
         if (u.getGoogleSub() == null) {
             u.setGoogleSub(sub);
             users.save(u);
         }
         var tokens = issue(u, ip, ua);
         audit(u.getId(), "LOGIN_GOOGLE", ip);
+        if (isNew) {
+            try { emailService.sendEmail(u.getEmail(), "Welcome to DeviceHub", emails.welcomeHtml(u.getName())); } catch (Exception ignored) {}
+        }
         return tokens;
     }
 
@@ -144,9 +170,20 @@ public class AuthService {
         String normalizedPhone = PhoneUtil.normalizePhone(r.getPhone());
         
         if (!otp.verifyOtp(normalizedPhone, r.getOtp())) throw new ApiException("OTP_INVALID", "Incorrect OTP");
-        var u = users.findByPhone(normalizedPhone).orElseGet(() -> users.save(User.builder().phone(normalizedPhone).name("User" + normalizedPhone).role(Role.CUSTOMER).build()));
+        boolean isNew = false;
+        var existingByPhone = users.findByPhone(normalizedPhone);
+        User u;
+        if (existingByPhone.isPresent()) {
+            u = existingByPhone.get();
+        } else {
+            u = users.save(User.builder().phone(normalizedPhone).name("User" + normalizedPhone).role(Role.CUSTOMER).build());
+            isNew = true;
+        }
         var tokens = issue(u, ip, ua);
         audit(u.getId(), "LOGIN_PHONE", ip);
+        if (isNew && u.getEmail() != null) {
+            try { emailService.sendEmail(u.getEmail(), "Welcome to DeviceHub", emails.welcomeHtml(u.getName())); } catch (Exception ignored) {}
+        }
         return tokens;
     }
 
@@ -178,7 +215,9 @@ public class AuthService {
         String token = UUID.randomUUID().toString().replace("-", "");
         resetRepo.save(PasswordResetToken.builder().userId(u.getId())
                 .tokenHash(sha256(token)).expiresAt(Instant.now()
-                        .plus(30, ChronoUnit.MINUTES)).build()); /* TODO send mail */
+                        .plus(30, ChronoUnit.MINUTES)).build());
+        // send reset email (best effort)
+        try { emailService.sendEmail(u.getEmail(), "Reset your password", emails.resetPasswordHtml(token)); } catch (Exception ignored) {}
     }
 
     @Transactional
@@ -191,6 +230,8 @@ public class AuthService {
         users.save(u);
         t.setUsed(true);
         resetRepo.save(t);
+        // send password changed email (best effort)
+        try { emailService.sendEmail(u.getEmail(), "Your password was changed", emails.passwordChangedHtml()); } catch (Exception ignored) {}
     }
 
     private AuthResponse issue(User u, String ip, String ua) {

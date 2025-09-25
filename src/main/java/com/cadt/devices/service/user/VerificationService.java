@@ -4,6 +4,7 @@ import com.cadt.devices.model.user.User;
 import com.cadt.devices.repo.user.UserRepository;
 import com.cadt.devices.util.PhoneUtil;
 import com.cadt.devices.exception.ApiException;
+import com.cadt.devices.service.common.EmailService;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -14,9 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class VerificationService {
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
-    public VerificationService(UserRepository userRepository) {
+    public VerificationService(UserRepository userRepository, EmailService emailService) {
         this.userRepository = userRepository;
+        this.emailService = emailService;
     }
 
     private final Map<String, String> userToEmailToken = new ConcurrentHashMap<>();
@@ -40,6 +43,10 @@ public class VerificationService {
         String token = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
         userToEmailToken.put(userId, token);
         userToPendingEmail.put(userId, newEmail);
+        // fire transactional email (best-effort)
+        try {
+            emailService.sendEmail(newEmail, "Verify your email", "<p>Your verification code is <b>" + token + "</b></p>");
+        } catch (Exception ignored) {}
         return token;
     }
 
