@@ -26,7 +26,7 @@ public class UserController {
     public ResponseEntity<UserResponse> me(Principal p) {
         var u = users.get(p.getName());
         return ResponseEntity.ok(new UserResponse(
-                u.getId(), u.getName(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getGender() != null ? u.getGender().name() : null, u.getCreatedAt(), u.getEmailVerifiedAt(), u.getPhoneVerifiedAt()
+                u.getId(), u.getName(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getGender() != null ? u.getGender().name() : null, u.getGoogleSub(), u.getPasswordHash() != null && !u.getPasswordHash().isBlank(), u.getCreatedAt(), u.getEmailVerifiedAt(), u.getPhoneVerifiedAt()
         ));
     }
 
@@ -34,7 +34,7 @@ public class UserController {
     public ResponseEntity<UserResponse> update(Principal p, @RequestBody UpdateProfileRequest r) {
         var u = users.update(p.getName(), r);
         return ResponseEntity.ok(new UserResponse(
-                u.getId(), u.getName(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getGender() != null ? u.getGender().name() : null, u.getCreatedAt(), u.getEmailVerifiedAt(), u.getPhoneVerifiedAt()
+                u.getId(), u.getName(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getGender() != null ? u.getGender().name() : null, u.getGoogleSub(), u.getPasswordHash() != null && !u.getPasswordHash().isBlank(), u.getCreatedAt(), u.getEmailVerifiedAt(), u.getPhoneVerifiedAt()
         ));
     }
 
@@ -50,7 +50,7 @@ public class UserController {
     public ResponseEntity<UserResponse> confirmEmail(Principal p, @RequestParam("token") String token) {
         var u = verifications.confirmEmailChange(p.getName(), token);
         return ResponseEntity.ok(new UserResponse(
-                u.getId(), u.getName(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getGender() != null ? u.getGender().name() : null, u.getCreatedAt(), u.getEmailVerifiedAt(), u.getPhoneVerifiedAt()
+                u.getId(), u.getName(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getGender() != null ? u.getGender().name() : null, u.getGoogleSub(), u.getPasswordHash() != null && !u.getPasswordHash().isBlank(), u.getCreatedAt(), u.getEmailVerifiedAt(), u.getPhoneVerifiedAt()
         ));
     }
 
@@ -66,7 +66,7 @@ public class UserController {
     public ResponseEntity<UserResponse> confirmPhone(Principal p, @RequestParam("otp") String otp) {
         var u = verifications.confirmPhoneChange(p.getName(), otp);
         return ResponseEntity.ok(new UserResponse(
-                u.getId(), u.getName(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getGender() != null ? u.getGender().name() : null, u.getCreatedAt(), u.getEmailVerifiedAt(), u.getPhoneVerifiedAt()
+                u.getId(), u.getName(), u.getFirstName(), u.getLastName(), u.getEmail(), u.getPhone(), u.getRole().name(), u.getAvatarUrl(), u.getStatus().name(), u.getGender() != null ? u.getGender().name() : null, u.getGoogleSub(), u.getPasswordHash() != null && !u.getPasswordHash().isBlank(), u.getCreatedAt(), u.getEmailVerifiedAt(), u.getPhoneVerifiedAt()
         ));
     }
 }

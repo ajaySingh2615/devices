@@ -99,6 +99,8 @@ public class UserService {
                 user.getAvatarUrl(),
                 user.getStatus().name(),
                 user.getGender() != null ? user.getGender().name() : null,
+                user.getGoogleSub(),
+                user.getPasswordHash() != null && !user.getPasswordHash().isBlank(),
                 user.getCreatedAt(),
                 user.getEmailVerifiedAt(),
                 user.getPhoneVerifiedAt()

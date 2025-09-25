@@ -22,6 +22,8 @@ public class UserResponse {
     private String avatarUrl;
     private String status;
     private String gender;
+    private String googleSub;
+    private Boolean hasPassword;
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private Instant createdAt;
